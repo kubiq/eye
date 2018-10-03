@@ -1,4 +1,7 @@
-import {BehaviorSubject} from "rxjs";
+import { BehaviorSubject } from "rxjs";
+import * as Bonjour from 'bonjour';
+import { debounceTime, map } from "rxjs/operators";
+import { groupBy, unset, values } from "lodash";
 
 export interface IService {
     addresses: [],
@@ -27,13 +30,26 @@ export class ServicesService {
 
     private serversSubject = new BehaviorSubject<ServiceMap>(null);
 
+  constructor() {
+
+    const bonjour = new Bonjour();
+
+    bonjour.find({}, (server) => this.add(server));
+
+  }
+
     get servers$() {
-        return this.serversSubject.asObservable();
+      return this.serversSubject.pipe(
+          map((services) => groupBy(values(services), 'name')),
+          debounceTime(1000),
+      );
     }
 
-    addServer(service: IService) {
+  add(service: IService) {
         const services = this.serversSubject.getValue();
         const key = service.fqdn;
+    unset(service, 'rawTxt');
+    unset(service, 'txt');
         const newServices = {...services, [key]: service};
 
         this.serversSubject.next(newServices);

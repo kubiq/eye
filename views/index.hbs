@@ -1,2 +1,12 @@
-<h1>{{title}}</h1>
-<p>Welcome to {{title}}</p>
+<table id="services"></table>
+
+<script>
+    const socket = io();
+    socket.on('services', function (dd) {
+        console.log(dd);
+    });
+
+    const app = new Vue({
+        el: '#services',
+    })
+</script>

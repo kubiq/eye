@@ -8,7 +8,7 @@ const bonjour = new Bonjour();
 const serversService = new ServicesService();
 
 bonjour.find({}, function (server) {
-    serversService.addServer(server)
+    serversService.add(server)
 });
 
 function parseServices(services) {
@@ -22,7 +22,7 @@ function parseServices(services) {
 }
 
 serversService.servers$
-    .pipe(map(parseServices))
+    // .pipe(map(parseServices))
     .subscribe((services) => {
         console.log(services);
     });

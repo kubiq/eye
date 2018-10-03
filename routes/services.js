@@ -4,5 +4,5 @@ var express_1 = require("express");
 exports.router = express_1.Router();
 /* GET services listing. */
 exports.router.get('/', function (req, res) {
-    res.send('respond with a resource');
+    res.send("ayyy");
 });

@@ -1,22 +1,27 @@
-import {createError} from 'http-errors';
+import { createError } from 'http-errors';
 import * as express from 'express';
 import * as cookieParser from 'cookie-parser';
 import * as logger from 'morgan';
 import * as path from 'path';
+import * as socketIO from 'socket.io';
+import * as http from "http";
+import { router as indexRouter } from './routes/index';
+import { router as servicesRouter } from './routes/services';
+import { ServicesService } from "./services/services.service";
 
-import {router as indexRouter} from './routes/index';
-import {router as servicesRouter} from './routes/services';
-
-export const app = express();
+const app = express();
+const server = http.createServer(app);
+const io = socketIO(server);
+const service = new ServicesService();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
 app.use(logger('dev'));
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: false }));
-// app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
@@ -38,4 +43,17 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-app.listen(3000);
+// This is what the socket.io syntax is like, we will work this later
+io.on('connection', socket => {
+  console.log('User connected');
+
+  socket.on('disconnect', () => {
+    console.log('user disconnected')
+  })
+});
+
+service.servers$.subscribe((services) => io.emit('services', services));
+
+server.listen(3000, () => {
+  console.log('App started on port 3000');
+});
