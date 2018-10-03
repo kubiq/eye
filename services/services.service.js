@@ -22,9 +22,16 @@ var ServicesService = /** @class */ (function () {
         var bonjour = new Bonjour();
         bonjour.find({}, function (server) { return _this.add(server); });
     }
+    Object.defineProperty(ServicesService.prototype, "value", {
+        get: function () {
+            return this.toArray(this.serversSubject.getValue());
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(ServicesService.prototype, "servers$", {
         get: function () {
-            return this.serversSubject.pipe(operators_1.map(function (services) { return lodash_1.groupBy(lodash_1.values(services), 'name'); }), operators_1.debounceTime(1000));
+            return this.serversSubject.pipe(operators_1.map(this.toArray));
         },
         enumerable: true,
         configurable: true
@@ -36,7 +43,14 @@ var ServicesService = /** @class */ (function () {
         lodash_1.unset(service, 'rawTxt');
         lodash_1.unset(service, 'txt');
         var newServices = __assign({}, services, (_a = {}, _a[key] = service, _a));
-        this.serversSubject.next(newServices);
+        var groupedServices = lodash_1.groupBy(lodash_1.values(newServices), 'name');
+        this.serversSubject.next(groupedServices);
+    };
+    ServicesService.prototype.toArray = function (services) {
+        return lodash_1.reduce(services, function (acc, services, hostname) {
+            acc.push({ hostname: hostname, services: services });
+            return acc;
+        }, []);
     };
     return ServicesService;
 }());

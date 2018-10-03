@@ -1,13 +1,14 @@
-import { createError } from 'http-errors';
+import createError from 'http-errors';
 import * as express from 'express';
 import * as cookieParser from 'cookie-parser';
 import * as logger from 'morgan';
 import * as path from 'path';
 import * as socketIO from 'socket.io';
-import * as http from "http";
+import * as http from 'http';
 import { router as indexRouter } from './routes/index';
 import { router as servicesRouter } from './routes/services';
-import { ServicesService } from "./services/services.service";
+import { ServicesService } from './services/services.service';
+import { debounceTime } from 'rxjs/operators';
 
 const app = express();
 const server = http.createServer(app);
@@ -20,7 +21,7 @@ app.set('view engine', 'hbs');
 
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -28,12 +29,12 @@ app.use('/', indexRouter);
 app.use('/api/services', servicesRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use((req, res, next) => {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use((err, req, res, next) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
@@ -47,12 +48,16 @@ app.use(function(err, req, res, next) {
 io.on('connection', socket => {
   console.log('User connected');
 
+  socket.emit('services', service.value);
+
   socket.on('disconnect', () => {
-    console.log('user disconnected')
-  })
+    console.log('user disconnected');
+  });
 });
 
-service.servers$.subscribe((services) => io.emit('services', services));
+service.servers$.pipe(
+    debounceTime(1e3),
+).subscribe((services) => io.emit('services', services));
 
 server.listen(3000, () => {
   console.log('App started on port 3000');
