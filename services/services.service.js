@@ -43,11 +43,14 @@ var ServicesService = /** @class */ (function () {
         lodash_1.unset(service, 'rawTxt');
         lodash_1.unset(service, 'txt');
         var newServices = __assign({}, services, (_a = {}, _a[key] = service, _a));
-        var groupedServices = lodash_1.groupBy(lodash_1.values(newServices), 'name');
-        this.serversSubject.next(groupedServices);
+        // const allServices = values(newServices);
+        // const groupedServices = groupBy(allServices, 'name');
+        this.serversSubject.next(newServices);
     };
     ServicesService.prototype.toArray = function (services) {
-        return lodash_1.reduce(services, function (acc, services, hostname) {
+        var allServices = lodash_1.values(services);
+        var groupedServices = lodash_1.groupBy(allServices, 'name');
+        return lodash_1.reduce(groupedServices, function (acc, services, hostname) {
             acc.push({ hostname: hostname, services: services });
             return acc;
         }, []);

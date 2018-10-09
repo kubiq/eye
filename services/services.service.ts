@@ -53,13 +53,18 @@ export class ServicesService {
     unset(service, 'rawTxt');
     unset(service, 'txt');
     const newServices = {...services, [key]: service};
-    const groupedServices = groupBy(values(newServices), 'name');
+    // const allServices = values(newServices);
+    // const groupedServices = groupBy(allServices, 'name');
 
-    this.serversSubject.next(groupedServices);
+    this.serversSubject.next(newServices);
   }
 
   toArray(services: ServicesMap) {
-    return reduce(services, (acc, services: IService[], hostname: string) => {
+
+    const allServices = values(services);
+    const groupedServices = groupBy(allServices, 'name');
+
+    return reduce(groupedServices, (acc, services: IService[], hostname: string) => {
 
       acc.push({hostname, services});
 
